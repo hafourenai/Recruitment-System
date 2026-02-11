@@ -2,6 +2,15 @@
 
 Sistem pendaftaran dan seleksi (hanya sebagai media pembelajaran)
 
+## Tech Stack
+
+- **Framework**: [Laravel 9.x](https://laravel.com/)
+- **Bahasa Pemrograman**: [PHP 8.x](https://www.php.net/)
+- **Database**: [MySQL](https://www.mysql.com/)
+- **Templating Engine**: [Blade](https://laravel.com/docs/9.x/blade)
+- **Styling**: Vanilla CSS
+- **Package Manager**: [Composer](https://getcomposer.org/)
+
 ---
 
 ## Panduan Penggunaan 
