@@ -1,13 +1,32 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Kelola Pendaftar')
+@section('title', 'Kelola Pendaftaran')
+@section('header-title', 'Data Pendaftaran')
 
 @section('content')
 
-<div style="margin-bottom: 25px; display: flex; gap: 10px;">
-    <a href="{{ route('admin.dashboard', ['posisi' => 'asisten']) }}" class="btn {{ request('posisi') == 'asisten' ? 'btn-primary' : '' }}" style="{{ request('posisi') == 'asisten' ? '' : 'background: white; border: 1px solid var(--border-color); color: var(--text-muted);' }}">Laboratorium</a>
-    <a href="{{ route('admin.dashboard', ['posisi' => 'programmer']) }}" class="btn {{ request('posisi') == 'programmer' ? 'btn-primary' : '' }}" style="{{ request('posisi') == 'programmer' ? '' : 'background: white; border: 1px solid var(--border-color); color: var(--text-muted);' }}">Programmer</a>
-    <a href="{{ route('admin.dashboard') }}" class="btn" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted);">Reset Filter</a>
+<div style="margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap;">
+    <x-button 
+        href="{{ route('admin.dashboard', ['posisi' => 'asisten']) }}" 
+        variant="{{ request('posisi') == 'asisten' ? 'primary' : 'secondary' }}"
+        size="sm"
+    >
+        Laboratorium
+    </x-button>
+    <x-button 
+        href="{{ route('admin.dashboard', ['posisi' => 'programmer']) }}" 
+        variant="{{ request('posisi') == 'programmer' ? 'primary' : 'secondary' }}"
+        size="sm"
+    >
+        Programmer
+    </x-button>
+    <x-button 
+        href="{{ route('admin.dashboard') }}" 
+        variant="secondary"
+        size="sm"
+    >
+        Reset Filter
+    </x-button>
 </div>
 
 <div class="table-container">
@@ -19,20 +38,20 @@
                 <th>IPK</th>
                 <th>Berkas</th>
                 <th>Status Seleksi</th>
-                <th>Action</th>
+                <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
             @forelse($pendaftarList as $pendaftar)
                 <tr>
                     <td>
-                        <strong style="display:block; margin-bottom: 2px;">{{ $pendaftar->nama }}</strong>
+                        <strong style="display:block; margin-bottom: 2px; color: var(--text-main);">{{ $pendaftar->nama }}</strong>
                         <small style="color: var(--text-muted);">{{ $pendaftar->npm }}</small>
                     </td>
                     <td>
-                        <span class="badge badge-primary">{{ ucfirst($pendaftar->posisi) }}</span>
+                        <x-badge variant="primary">{{ ucfirst($pendaftar->posisi) }}</x-badge>
                     </td>
-                    <td><strong>{{ $pendaftar->ipk }}</strong></td>
+                    <td><strong>{{ number_format($pendaftar->ipk, 2) }}</strong></td>
                     <td>
                         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                             @foreach($pendaftar->berkas as $file)
@@ -55,12 +74,14 @@
                         </form>
                     </td>
                     <td>
-                        <button class="btn" style="padding: 6px 12px; font-size: 0.8rem; background: #e9ecef; color: #333;">Detail</button>
+                        <x-button variant="secondary" size="sm">
+                            Detail
+                        </x-button>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px;">Belum ada pendaftar.</td>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Belum ada pendaftar.</td>
                 </tr>
             @endforelse
         </tbody>

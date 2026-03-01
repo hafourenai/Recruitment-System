@@ -8,27 +8,28 @@ use Illuminate\Support\Facades\Log;
 
 class SanitizeInput
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
+    private array $except = [
+        'password',
+        'password_confirmation',
+        'token',
+    ];
+
     public function handle(Request $request, Closure $next)
     {
         $input = $request->all();
         
-        array_walk_recursive($input, function (&$value, $key) {
-            if (is_string($value)) {
-                // Remove potential XSS attacks
-                $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        array_walk_recursive($input, function (&$value, $key) use ($request) {
+            if (is_string($value) && !$this->shouldSkip($key)) {
+                $originalValue = $value;
                 
-                // Log suspicious input
-                if ($this->containsSuspiciousContent($value)) {
-                    Log::warning('Suspicious input detected', [
+                $value = $this->sanitize($value);
+                
+                if ($value !== $originalValue && $this->containsSuspiciousContent($originalValue)) {
+                    Log::warning('Potentially malicious input sanitized', [
                         'key' => $key,
-                        'value' => $value,
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent()
+                        'ip' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                        'route' => $request->route()?->uri(),
                     ]);
                 }
             }
@@ -39,13 +40,32 @@ class SanitizeInput
         return $next($request);
     }
     
-    private function containsSuspiciousContent($value): bool
+    private function shouldSkip(string $key): bool
+    {
+        return in_array($key, $this->except);
+    }
+    
+    private function sanitize(string $value): string
+    {
+        $value = trim($value);
+        $value = stripslashes($value);
+        $value = htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        return $value;
+    }
+    
+    private function containsSuspiciousContent(string $value): bool
     {
         $suspiciousPatterns = [
             '/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi',
             '/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/mi',
+            '/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/mi',
+            '/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/mi',
             '/javascript:/i',
             '/on\w+\s*=/i',
+            '/data:\s*text\/html/i',
+            '/expression\s*\(/i',
+            '/<\?php/i',
         ];
         
         foreach ($suspiciousPatterns as $pattern) {

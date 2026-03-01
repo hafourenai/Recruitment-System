@@ -2,17 +2,17 @@
 
 @section('content')
 <div class="container" style="display: flex; justify-content: center; padding: 60px 20px;">
-    <div class="auth-card" style="max-width: 450px;">
+    <div class="auth-card">
         <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 50px; height: 50px; background: var(--primary-color); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 1.2rem;">🔐</div>
-            <h2 style="font-size: 1.8rem; margin-bottom: 5px;">Reset Password</h2>
+            <div class="logo-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; font-size: 1.5rem; background: var(--primary-color);">🔐</div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 8px; color: var(--text-main);">Reset Password</h2>
             <p style="color: var(--text-muted);">Buat password baru untuk akun Anda</p>
         </div>
         
         @if ($errors->any())
-            <div style="background-color: #f8d7da; color: #842029; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+            <div class="alert alert-danger">
                 <strong>Perhatikan hal berikut:</strong>
-                <ul style="margin-left: 20px; margin-top: 5px;">
+                <ul style="margin-left: 20px; margin-top: 10px;">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -24,25 +24,35 @@
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
             
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" required value="{{ old('email') }}" placeholder="email@example.com">
-            </div>
+            <x-form-input
+                name="email"
+                label="Email"
+                type="email"
+                placeholder="email@gunadarma.ac.id"
+                required="true"
+                :value="old('email')"
+            />
             
-            <div class="form-group">
-                <label class="form-label">Password Baru</label>
-                <input type="password" name="password" class="form-control" required placeholder="••••••••••••">
-                <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px; display: block;">
-                    Minimal 12 karakter dengan huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&)
-                </small>
-            </div>
+            <x-form-input
+                name="password"
+                label="Password Baru"
+                type="password"
+                placeholder="Minimal 12 karakter"
+                required="true"
+                help="Minimal 12 karakter dengan huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&)"
+            />
             
-            <div class="form-group">
-                <label class="form-label">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" class="form-control" required placeholder="••••••••••••">
-            </div>
+            <x-form-input
+                name="password_confirmation"
+                label="Konfirmasi Password"
+                type="password"
+                placeholder="Ulangi password baru"
+                required="true"
+            />
             
-            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Reset Password</button>
+            <x-button type="submit" variant="primary" size="lg" style="width: 100%;">
+                Reset Password
+            </x-button>
         </form>
         
         <div style="text-align: center; margin-top: 25px;">

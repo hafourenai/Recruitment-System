@@ -1,6 +1,7 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Data Pendaftar (Read Only)')
+@section('title', 'Data Pendaftaran (Read Only)')
+@section('header-title', 'Review Berkas')
 
 @section('content')
 <div class="table-container">
@@ -19,16 +20,16 @@
             @forelse($pendaftarList as $pendaftar)
                 <tr>
                     <td>
-                        <div style="font-weight: 600;">{{ $pendaftar->nama }}</div>
+                        <div style="font-weight: 600; color: var(--text-main);">{{ $pendaftar->nama }}</div>
                         <div style="font-size: 0.8rem; color: var(--text-muted);">{{ $pendaftar->program_studi }}</div>
                     </td>
                     <td>{{ $pendaftar->npm }}</td>
-                    <td><span style="font-weight: 700;">{{ $pendaftar->ipk }}</span></td>
+                    <td><span style="font-weight: 700;">{{ number_format($pendaftar->ipk, 2) }}</span></td>
                     <td>
-                        <span class="badge badge-primary">{{ ucfirst($pendaftar->posisi) }}</span>
+                        <x-badge variant="primary">{{ ucfirst($pendaftar->posisi) }}</x-badge>
                     </td>
                     <td>
-                        <span class="badge badge-info">{{ ucwords(str_replace('_', ' ', $pendaftar->status)) }}</span>
+                        <x-badge variant="info">{{ ucwords(str_replace('_', ' ', $pendaftar->status)) }}</x-badge>
                     </td>
                     <td>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -42,7 +43,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px;">Belum ada pendaftar.</td>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Belum ada pendaftaran.</td>
                 </tr>
             @endforelse
         </tbody>

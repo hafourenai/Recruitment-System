@@ -69,23 +69,24 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255|regex:/^[a-zA-Z\s\.\-,]+$/',
+            'nama' => 'required|string|max:255|regex:/^[a-zA-Z\s\.\-,\']+$/',
             'npm' => 'required|string|regex:/^[0-9]+$/|min:8|max:15|unique:pendaftar_details,npm',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'email' => 'required|string|email|max:255|unique:users,email|ends_with:@gunadarma.ac.id',
             'password' => 'required|string|min:12|max:128|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
-            'nomor_hp' => 'required|string|regex:/^[0-9\+\-]+$/|min:10|max:15',
+            'nomor_hp' => 'required|string|regex:/^[0-9]+$/|min:10|max:15',
             'program_studi' => 'required|string|in:Sistem Informasi,Sistem Komputer,Informatika,Manajemen,Akuntansi',
-            'ipk' => 'required|numeric|between:0,4.00',
+            'ipk' => 'required|numeric|min:0|max:4',
             'posisi' => 'required|in:asisten,programmer',
             'cv' => 'required|mimes:pdf|max:2048',
             'krs' => 'required|mimes:pdf|max:2048',
             'transkrip' => 'required|mimes:pdf|max:2048',
             'sertifikat' => 'nullable|mimes:pdf|max:2048',
         ], [
-            'nama.regex' => 'Nama hanya boleh mengandung huruf, spasi, titik, koma, dan tanda hubung',
+            'nama.regex' => 'Nama hanya boleh mengandung huruf, spasi, titik, koma, tanda hubung, dan apostrof',
             'npm.regex' => 'NPM hanya boleh mengandung angka',
+            'email.ends_with' => 'Email harus menggunakan domain @gunadarma.ac.id',
             'password.regex' => 'Password harus mengandung minimal 12 karakter dengan huruf besar, huruf kecil, angka, dan karakter khusus (@$!%*?&)',
-            'nomor_hp.regex' => 'Nomor HP hanya boleh mengandung angka, +, dan -',
+            'nomor_hp.regex' => 'Nomor HP hanya boleh mengandung angka',
         ]);
 
         DB::beginTransaction();
@@ -112,14 +113,31 @@ class AuthController extends Controller
                 'posisi' => $request->posisi, // This is stored in details
             ]);
 
-            // Handle Files
+            // Handle Files dengan keamanan yang lebih ketat
             $files = ['cv', 'krs', 'transkrip', 'sertifikat'];
+            $allowedMimeTypes = ['application/pdf'];
+            
             foreach ($files as $type) {
                 if ($request->hasFile($type)) {
                     $file = $request->file($type);
-                    $path = $file->storeAs("uploads/{$request->npm}", "{$type}.pdf"); // Store as Type.pdf for simplicity or hash? Using type is cleaner for overwrites but user might re-upload. Original name?
-                    // Requirement: validated in server. Safe storage.
-                    // StoreAs returns path logic relative to disk.
+                    
+                    // Validasi MIME type secara eksplisit
+                    if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+                        throw ValidationException::withMessages([
+                            $type => 'File harus dalam format PDF'
+                        ]);
+                    }
+                    
+                    // Validasi ukuran file
+                    if ($file->getSize() > 2 * 1024 * 1024) {
+                        throw ValidationException::withMessages([
+                            $type => 'Ukuran file maksimal 2MB'
+                        ]);
+                    }
+                    
+                    // Generate nama file yang aman
+                    $safeFileName = preg_replace('/[^a-zA-Z0-9]/', '', $type) . '_' . time() . '.pdf';
+                    $path = $file->storeAs("uploads/{$request->npm}", $safeFileName);
                     
                     Berkas::create([
                         'pendaftar_id' => $pendaftar->id,
@@ -184,8 +202,8 @@ class AuthController extends Controller
             ]);
         }
 
-        // Always show success message to prevent email enumeration
-        return back()->with('success', 'Jika email terdaftar, Anda akan menerima link reset password.');
+        // Always show generic message to prevent email enumeration
+        return back()->with('success', 'Jika email terdaftar di sistem kami, Anda akan menerima link reset password dalam beberapa menit.');
     }
 
     public function resetPasswordForm($token)
